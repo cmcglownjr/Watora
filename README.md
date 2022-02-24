@@ -10,7 +10,7 @@ Here's yet another forked repository of Watora, the discord music bot.
 
 ## Installation
 ```
-git clone https://github.com/Soulnull/Watora
+git clone https://github.com/soulnull/Watora
 cd Watora
 ```
 Install or update all dependencies with `update.bat` on Windows, or `update.sh` on Linux.<br>
