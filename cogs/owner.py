@@ -78,7 +78,7 @@ class Owner(commands.Cog):
             self.bot.load_extension("cogs." + extension_name.lower())
         except Exception as e:
             return await ctx.send("```py\n{}: {}\n```".format(type(e).__name__, str(e)))
-        await ctx.send(":heavy_check_mark: {} loaded !".format(extension_name.lower()))
+        await ctx.send(":white_check_mark: {} loaded !".format(extension_name.lower()))
 
     @commands.command()
     @commands.is_owner()
@@ -93,7 +93,7 @@ class Owner(commands.Cog):
         if extension_name.lower() == self.__class__.__name__.lower():
             return await ctx.send("This cog cannot be unloaded.")
         self.bot.unload_extension("cogs." + extension_name.lower())
-        await ctx.send(":heavy_check_mark: {} unloaded !".format(extension_name.lower()))
+        await ctx.send(":white_check_mark: {} unloaded !".format(extension_name.lower()))
         
     @commands.command()
     @commands.is_owner()
@@ -127,7 +127,7 @@ class Owner(commands.Cog):
             self.bot.load_extension("cogs." + extension_name)
         except Exception as e:
             return await ctx.send(":x: {} have not been reloaded...```py\n{}: {}\n```".format(extension_name, type(e).__name__, str(e)))
-        return await ctx.send(":heavy_check_mark: {} reloaded !".format(extension_name))
+        return await ctx.send(":white_check_mark: {} reloaded !".format(extension_name))
 
     @commands.command()
     @commands.is_owner()
@@ -151,7 +151,7 @@ class Owner(commands.Cog):
                 msg += (":x: **{}** have not been loaded... ``{}: {}``\n".format(c,
                                                                                  type(e).__name__, e))
                 continue
-            msg += (":heavy_check_mark: **{}** has been reloaded !\n".format(c))
+            msg += (":white_check_mark: **{}** has been reloaded !\n".format(c))
         return await ctx.send(msg)
 
     @commands.command()
@@ -167,7 +167,7 @@ class Owner(commands.Cog):
 
         for c in cogs:
             self.bot.unload_extension("cogs." + c)
-            msg += (":heavy_check_mark: **{}** has been unloaded !\n".format(c))
+            msg += (":white_check_mark: **{}** has been unloaded !\n".format(c))
         return await ctx.send(msg)
 
     @commands.command()
