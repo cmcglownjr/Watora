@@ -1,16 +1,16 @@
 <a href="https://www.patreon.com/watora"><img alt="Become a Watora's Patron" src="https://c5.patreon.com/external/logo/become_a_patron_button.png" height="35px"></a><br>
 # Watora
-Here's the official repository of Watora, the discord music bot.
+Here's yet another forked repository of Watora, the discord music bot.
 
 ## Requirements: <br>
-- [Python3.6+ with pip](https://www.python.org/downloads/)<br>
+- [Python3.8+ with pip](https://www.python.org/downloads/)<br>
 - [mongodb](https://www.mongodb.com/download-center/community) <br>
 - [Java](https://www.java.com/fr/download/) <br>
 - [Watora Translations](https://github.com/Zenrac/watora-translations)
 
 ## Installation
 ```
-git clone https://github.com/Zenrac/Watora
+git clone https://github.com/Soulnull/Watora
 cd Watora
 ```
 Install or update all dependencies with `update.bat` on Windows, or `update.sh` on Linux.<br>
@@ -26,5 +26,3 @@ Install or update all dependencies with `update.bat` on Windows, or `update.sh` 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
-
-[![Discord Bots](https://discordbots.org/api/widget/220644154177355777.svg)](https://discordbots.org/bot/220644154177355777)
