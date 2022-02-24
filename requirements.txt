@@ -20,5 +20,6 @@ motor
 discord-together
 google-api-python-client
 uvloop ;'linux' in sys_platform
+PyNaCl
 py-cord[voice]
 cffi --only-binary all; sys_platform == 'win32'
