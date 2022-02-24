@@ -1,6 +1,6 @@
 <a href="https://www.patreon.com/watora"><img alt="Become a Watora's Patron" src="https://c5.patreon.com/external/logo/become_a_patron_button.png" height="35px"></a><br>
 # Watora
-Here's yet another forked repository of Watora, the discord music bot.
+Here's yet another forked repository of [Watora](https://github.com/Zenrac/Watora), the discord music bot.
 
 ## Requirements: <br>
 - [Python3.8+ with pip](https://www.python.org/downloads/)<br>
