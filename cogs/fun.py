@@ -47,7 +47,12 @@ class Fun(commands.Cog):
             except discord.HTTPException:
                 pass
 
-        await ctx.send("<:watoping:458349269875949569>")
+        #await ctx.send("<:watoping:458349269875949569>")
+        embed = discord.Embed(color=13596669)
+        embed.set_image(url="https://cdn.discordapp.com/emojis/458349269875949569.png")
+        await ctx.send(content=None, embed=embed)
+
+        
 
     @commands.cooldown(rate=1, per=2, type=commands.BucketType.user)
     @commands.command(name="ily", aliases=["jtm"])
@@ -61,7 +66,10 @@ class Fun(commands.Cog):
         if more and not fetched_member:
             await ctx.send(get_str(ctx, "cmd-ily-nope"))
         elif more:
-            await ctx.send("<:WatoraCry:458349266495078413>")
+            #await ctx.send("<:WatoraCry:458349266495078413>")
+            embed = discord.Embed(color=13596669)
+            embed.set_image(url="https://cdn.discordapp.com/emojis/458349266495078413.png")
+            await ctx.send(content=None, embed=embed)
         elif fetched_member:
             await ctx.send(random.choice(get_str(ctx, "cmd-ily-yes").split("|")))
         else:
