@@ -1446,10 +1446,9 @@ class Music(commands.Cog):
 
         my_vc = ctx.guild.me.voice.channel
 
-        if not await self.is_dj(ctx):
-            if ctx.author.id not in my_vc.voice_states or (ctx.author.voice.self_deaf or ctx.author.voice.deaf):
-                ctx.command.reset_cooldown(ctx)
-                return await ctx.send(get_str(ctx, "music-not-my-channel").format(f"**{my_vc}**"), delete_after=30)
+        if ctx.author.id not in my_vc.voice_states or (ctx.author.voice.self_deaf or ctx.author.voice.deaf):
+            ctx.command.reset_cooldown(ctx)
+            return await ctx.send(get_str(ctx, "music-not-my-channel").format(f"**{my_vc}**"), delete_after=30)
 
         if not user_options or user_options in ('stop', 'leave', 'cancel'):
             if not ctx.channel.permissions_for(ctx.author).manage_guild and not ctx.author.id == owner_id:
@@ -1641,10 +1640,8 @@ class Music(commands.Cog):
 
         my_vc = ctx.guild.me.voice.channel
 
-        if not await self.is_dj(ctx):
-            #if ctx.author.id not in my_vc.voice_states or (ctx.author.voice.self_deaf or ctx.author.voice.deaf):
-            if ctx.author.voice.channel.id and ctx.author.voice.channel.id != ctx.voice_client.channel.id: 
-                return await ctx.send(get_str(ctx, "music-not-my-channel").format(f"**{my_vc}**"), delete_after=30)
+        if ctx.author.voice.channel.id and ctx.author.voice.channel.id != ctx.voice_client.channel.id: 
+            return await ctx.send(get_str(ctx, "music-not-my-channel").format(f"**{my_vc}**"), delete_after=30)
 
         if not query and player.paused:
             return await ctx.invoke(self.pause_song)
@@ -1730,10 +1727,8 @@ class Music(commands.Cog):
 
         my_vc = ctx.guild.me.voice.channel
 
-        if not await self.is_dj(ctx):
-            #if ctx.author.id not in my_vc.voice_states or (ctx.author.voice.self_deaf or ctx.author.voice.deaf):
-            if ctx.author.voice.channel.id and ctx.author.voice.channel.id != ctx.voice_client.channel.id: 
-                return await ctx.send(get_str(ctx, "music-not-my-channel").format(f"**{my_vc}**"), delete_after=30)
+        if ctx.author.voice.channel.id and ctx.author.voice.channel.id != ctx.voice_client.channel.id: 
+            return await ctx.send(get_str(ctx, "music-not-my-channel").format(f"**{my_vc}**"), delete_after=30)
 
         if player.previous:
             await ctx.invoke(self.play_song, query=player.previous.uri)
@@ -1776,10 +1771,8 @@ class Music(commands.Cog):
 
         my_vc = ctx.guild.me.voice.channel
 
-        if not await self.is_dj(ctx):
-            #if ctx.author.id not in my_vc.voice_states or (ctx.author.voice.self_deaf or ctx.author.voice.deaf):
-            if ctx.author.voice.channel.id and ctx.author.voice.channel.id != ctx.voice_client.channel.id: 
-                return await ctx.send(get_str(ctx, "music-not-my-channel").format(f"**{my_vc}**"), delete_after=30)
+        if ctx.author.voice.channel.id and ctx.author.voice.channel.id != ctx.voice_client.channel.id: 
+            return await ctx.send(get_str(ctx, "music-not-my-channel").format(f"**{my_vc}**"), delete_after=30)
 
         if not player.current:
             return await ctx.send(get_str(ctx, "not-playing"), delete_after=30)
@@ -1801,10 +1794,8 @@ class Music(commands.Cog):
 
         my_vc = ctx.guild.me.voice.channel
 
-        if not await self.is_dj(ctx):
-            #if ctx.author.id not in my_vc.voice_states or (ctx.author.voice.self_deaf or ctx.author.voice.deaf):
-            if ctx.author.voice.channel.id and ctx.author.voice.channel.id != ctx.voice_client.channel.id: 
-                return await ctx.send(get_str(ctx, "music-not-my-channel").format(f"**{my_vc}**"), delete_after=30)
+        if ctx.author.voice.channel.id and ctx.author.voice.channel.id != ctx.voice_client.channel.id: 
+            return await ctx.send(get_str(ctx, "music-not-my-channel").format(f"**{my_vc}**"), delete_after=30)
 
         if not player.current:
             return await ctx.send(get_str(ctx, "not-playing"), delete_after=30)
@@ -1913,10 +1904,8 @@ class Music(commands.Cog):
 
         my_vc = ctx.guild.me.voice.channel
 
-        if not await self.is_dj(ctx):
-            #if ctx.author.id not in my_vc.voice_states or (ctx.author.voice.self_deaf or ctx.author.voice.deaf):
-            if ctx.author.voice.channel.id and ctx.author.voice.channel.id != ctx.voice_client.channel.id: 
-                return await ctx.send(get_str(ctx, "music-not-my-channel").format(f"**{my_vc}**"), delete_after=30)
+        if ctx.author.voice.channel.id and ctx.author.voice.channel.id != ctx.voice_client.channel.id: 
+            return await ctx.send(get_str(ctx, "music-not-my-channel").format(f"**{my_vc}**"), delete_after=30)
 
         if not player.current:
             return await ctx.send(get_str(ctx, "not-playing"), delete_after=20)
@@ -1959,10 +1948,8 @@ class Music(commands.Cog):
 
         my_vc = ctx.guild.me.voice.channel
 
-        if not await self.is_dj(ctx):
-            #if ctx.author.id not in my_vc.voice_states or (ctx.author.voice.self_deaf or ctx.author.voice.deaf):
-            if ctx.author.voice.channel.id and ctx.author.voice.channel.id != ctx.voice_client.channel.id: 
-                return await ctx.send(get_str(ctx, "music-not-my-channel").format(f"**{my_vc}**"), delete_after=30)
+        if ctx.author.voice.channel.id and ctx.author.voice.channel.id != ctx.voice_client.channel.id: 
+            return await ctx.send(get_str(ctx, "music-not-my-channel").format(f"**{my_vc}**"), delete_after=30)
 
         if not player.current:
             return await ctx.send(get_str(ctx, "not-playing"), delete_after=20)
@@ -2000,10 +1987,8 @@ class Music(commands.Cog):
 
         my_vc = ctx.guild.me.voice.channel
 
-        if not await self.is_dj(ctx):
-            #if ctx.author.id not in my_vc.voice_states or (ctx.author.voice.self_deaf or ctx.author.voice.deaf):
-            if ctx.author.voice.channel.id and ctx.author.voice.channel.id != ctx.voice_client.channel.id: 
-                return await ctx.send(get_str(ctx, "music-not-my-channel").format(f"**{my_vc}**"), delete_after=30)
+        if ctx.author.voice.channel.id and ctx.author.voice.channel.id != ctx.voice_client.channel.id: 
+            return await ctx.send(get_str(ctx, "music-not-my-channel").format(f"**{my_vc}**"), delete_after=30)
 
         if not player.queue:
             return await ctx.send(get_str(ctx, "music-clear-empty"))
@@ -2167,10 +2152,8 @@ class Music(commands.Cog):
 
         my_vc = ctx.guild.me.voice.channel
 
-        if not self.true_members_vc(my_vc):
-            #if ctx.author.id not in my_vc.voice_states or (ctx.author.voice.self_deaf or ctx.author.voice.deaf):
-            if ctx.author.voice.channel.id and ctx.author.voice.channel.id != ctx.voice_client.channel.id: 
-                return await ctx.send(get_str(ctx, "music-not-my-channel").format(f"**{my_vc}**"), delete_after=30)
+        if ctx.author.voice.channel.id and ctx.author.voice.channel.id != ctx.voice_client.channel.id: 
+            return await ctx.send(get_str(ctx, "music-not-my-channel").format(f"**{my_vc}**"), delete_after=30)
 
         if not player.is_playing:
             return await ctx.send(get_str(ctx, "not-playing"), delete_after=20)
@@ -2347,10 +2330,8 @@ class Music(commands.Cog):
 
         my_vc = ctx.guild.me.voice.channel
 
-        if not await self.is_dj(ctx):
-            #if ctx.author.id not in my_vc.voice_states or (ctx.author.voice.self_deaf or ctx.author.voice.deaf):
-            if ctx.author.voice.channel.id and ctx.author.voice.channel.id != ctx.voice_client.channel.id: 
-                return await ctx.send(get_str(ctx, "music-not-my-channel").format(f"**{my_vc}**"), delete_after=30)
+        if ctx.author.voice.channel.id and ctx.author.voice.channel.id != ctx.voice_client.channel.id: 
+            return await ctx.send(get_str(ctx, "music-not-my-channel").format(f"**{my_vc}**"), delete_after=30)
 
         if not player.queue:
             return await ctx.send(get_str(ctx, "music-remove-empty"))
@@ -2664,9 +2645,8 @@ class Music(commands.Cog):
 
         my_vc = ctx.guild.me.voice.channel
 
-        if not await self.is_dj(ctx):
-            if ctx.author.id not in my_vc.voice_states or (ctx.author.voice.self_deaf or ctx.author.voice.deaf):
-                return await ctx.send(get_str(ctx, "music-not-my-channel").format(f"**{my_vc}**"), delete_after=30)
+        if ctx.author.voice.channel.id != ctx.voice_client.channel.id: #or (ctx.author.voice.self_deaf or ctx.author.voice.deaf):
+            return await ctx.send(get_str(ctx, "music-not-my-channel").format(f"**{my_vc}**"), delete_after=30)
 
         player.autoplaylist = None
         await ctx.send(get_str(ctx, "music-ploff-disabled"), delete_after=20)
@@ -2799,9 +2779,8 @@ class Music(commands.Cog):
 
         my_vc = ctx.guild.me.voice.channel
 
-        if not await self.is_dj(ctx):
-            if ctx.author.id not in my_vc.voice_states or (ctx.author.voice.self_deaf or ctx.author.voice.deaf):
-                return await ctx.send(get_str(ctx, "music-not-my-channel").format(f"**{my_vc}**"), delete_after=30)
+        if ctx.author.voice.channel.id != ctx.voice_client.channel.id: #or (ctx.author.voice.self_deaf or ctx.author.voice.deaf):
+            return await ctx.send(get_str(ctx, "music-not-my-channel").format(f"**{my_vc}**"), delete_after=30)
 
         if ctx.message.mentions:
             user = ctx.message.mentions[-1]
