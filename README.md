@@ -1,6 +1,6 @@
 <a href="https://www.patreon.com/watora"><img alt="Become a Watora's Patron" src="https://c5.patreon.com/external/logo/become_a_patron_button.png" height="35px"></a><br>
 # Watora
-Here's yet another forked repository of [Watora](https://github.com/Zenrac/Watora), the Discord music bot best girl. This repository includes some fixes and small changes. Please join the [AnimeZero](https://discord.gg/AnimeZero) Discord server to see her in action.
+Here's yet another forked repository of [Watora](https://github.com/Zenrac/Watora), the Discord music bot best girl. This repository includes some fixes and small changes. I don't actually know Python, so most of the credit goes to random people on StackOverflow and pure autistic stubbornness. Please join the [AnimeZero](https://discord.gg/AnimeZero) Discord server to see her in action.
 
 ## Requirements: <br>
 - [Python3.8+ with pip](https://www.python.org/downloads/)<br>
