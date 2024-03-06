@@ -1,56 +1,75 @@
 import re
 import random
 import discord
-
 from collections import Counter, OrderedDict
-
-from utils.db import SettingsDB
-from utils.watora import get_server_prefixes, get_str
+from typing import List, Dict, Optional
 
 class BlindTest:
+    """
+    A class representing a blind test game.
+    """
+
     def __init__(self, player):
-        self.bot = player.node._manager._lavalink.bot
+        self.bot: discord.Bot = player.node._manager._lavalink.bot
         self.jikan = self.bot.jikan
         self.player = player
-        self.songs = []
-        self.points = {}
-        self.severity = 100
-        self.channel = None
-        self.current_song = None
-        self.next_song = None
-        self.accept_longest_word = False
-        self.listening_mode = False
-        self.current_task = []
-        self.timeout = 120
-        self.percentage = '100,0,0'
-        self.wait = 5
-        self.source = 'ytsearch'
+        self.songs: List[dict] = []
+        self.points: Dict[str, int] = {}
+        self.severity: int = 100
+        self.channel: Optional[discord.TextChannel] = None
+        self.current_song: Optional[dict] = None
+        self.next_song: Optional[dict] = None
+        self.accept_longest_word: bool = False
+        self.listening_mode: bool = False
+        self.current_task: List[asyncio.Task] = []
+        self.timeout: int = 120
+        self.percentage: str = '100,0,0'
+        self.wait: int = 5
+        self.source: str = 'ytsearch'
 
     @property
-    def is_running(self):
+    def is_running(self) -> bool:
+        """
+        Returns True if the blind test game is running, False otherwise.
+        """
         return bool(self.songs) or bool(self.next_song and (self.current_song != self.next_song))
 
     @property
-    def partition(self):
+    def partition(self) -> List[str]:
+        """
+        Returns a list of opening, ending, and ost strings based on the percentage attribute.
+        """
         values = [abs(int(m)) for m in self.percentage.split(',')]
         while len(values) < 3:
             values.append(0)
         return ['opening'] * values[0] + ['ending'] * values[1] + ['ost'] * values[2]
 
     @property
-    def bt_channel(self):
+    def bt_channel(self) -> discord.TextChannel:
+        """
+        Returns the text channel where the blind test game is taking place.
+        """
         return self.channel
 
     @property
-    def guild(self):
+    def guild(self) -> discord.Guild:
+        """
+        Returns the guild where the blind test game is taking place.
+        """
         return self.bot.get_guild(int(self.player.guild_id))
 
     def clean_tasks(self):
+        """
+        Cancels all current tasks.
+        """
         for task in self.current_task:
             task.cancel()
         self.current_task = []
 
-    async def stop(self, bypass=False, send_final=True):
+    async def stop(self, bypass: bool = False, send_final: bool = True):
+        """
+        Stops the blind test game.
+        """
         if self.is_running or bypass:
             embed = await self.get_classement()
             if embed.fields:
@@ -68,6 +87,9 @@ class BlindTest:
         self.points = {}
 
     async def send_final_embed(self):
+        """
+        Sends a final embed message.
+        """
         e = discord.Embed(description=get_str(
             self.guild, "cmd-blindtest-enjoyed", bot=self.bot))
         e.description += "\n\n**[{}](https://www.patreon.com/watora)** {}".format(
@@ -76,70 +98,26 @@ class BlindTest:
             f"`{get_server_prefixes(self.bot, self.guild)}suggestion`")
         await self.bt_channel.send(embed=e)
 
-    def pop(self, next=False):
-        song = self.songs.pop(random.randrange(len(self.songs)))
+    def pop(self, next: bool = False) -> dict:
+        """
+        Pops a random song from the songs list.
+        """
+        if not self.songs:
+            return None
+        index = random.randrange(len(self.songs))
+        song = self.songs.pop(index)
         if next:
             self.next_song = song
         else:
             self.current_song = song
         return song
 
-    def get_song_keywords(self):
+    def get_song_keywords(self) -> str:
+        """
+        Returns the keywords for the current song.
+        """
         if self.current_song.is_anime:
             search_end = ' ' + random.choice(self.partition)
             parts = self.current_song.title.split(':')
             if len(parts) > 1 and len(self.current_song.title.split(':')[0]) > 2:
-                if len(self.current_song.title.split(':')[1]) > 40:
-                    # Holy shit this is too long.
-                    search_beg = self.current_song.title.split(':')[0]
-                else:
-                    search_beg = self.current_song.title
-            else:
-                search_beg = self.current_song.title
-            return search_beg + search_end
-        return self.current_song.url
-
-    def remaining_song(self):
-        return len(self.songs)
-
-    async def get_classement(self, embed=None):
-        if not embed:
-            embed = discord.Embed()
-        counter = Counter(self.points)
-        classement = OrderedDict(counter.most_common())
-        for i, user in enumerate(classement, start=1):
-            if len(embed.fields) > 10:
-                break
-            u = await self.bot.safe_fetch('member', int(user), guild=self.guild)
-            if u:
-                embed.add_field(name=f'{i}. {u}', value=self.points[user])
-        return embed
-
-    def answer_is_valid(self, *, query):
-        query = query.lower()
-        naked_query = re.sub(r'\W+', ' ', query).strip()
-        title = self.current_song.title
-        titles = self.current_song.titles
-
-        if query in titles or naked_query in titles:
-            return True
-        for ti in titles:
-            if ti in query or ti in naked_query:
-                return True
-
-        if self.accept_longest_word:
-            longest = sorted(title.split(' '), key=len)[-1]
-            if longest in query or longest in naked_query:
-                return True
-
-        for m in titles:
-            if (len(m) * (self.severity / 100)) <= len(query):
-                if query in m:
-                    return True
-
-        for m in titles:
-            if ''.join(m.split()) in ''.join(query.split()):
-                return True
-            if ''.join(m.split()) in ''.join(naked_query.split()):
-                return True
-        return False
+              
