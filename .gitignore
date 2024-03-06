@@ -1,12 +1,9 @@
 # Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
+*.pyc
+*.pyo
+*.pyd
 
 # Config Files
 config/settings.json
 config/tokens.json
 config/i18n/
-
-logs/
-utils/Lavalink
