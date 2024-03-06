@@ -1,37 +1,41 @@
 import aiohttp
 import asyncio
 import listenmoe
-from discord.ext import commands
-# from monstercatFM import monstercat  # Unused import statement removed
+
+# from monstercatFM import monstercat
 from utils.watora import log
+from discord.ext import commands
+
 
 class Radio(commands.Cog):
-    """A cog for handling radio streams."""
-
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot):
         self.bot = bot
         self.tasks = []
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
-        asyncio.create_task(self.start())
+        asyncio.ensure_future(self.start())
 
     def cog_unload(self):
         for task in self.tasks:
             task.cancel()
-        asyncio.create_task(self.session.close())
+        asyncio.ensure_future(self.session.close())
 
-    async def players_update(self, kpop: bool = False, mc: bool = False):
-        """Update all players."""
-        try:
+    async def players_update(self, kpop=False, mc=False):
+        if 'Music' in self.bot.cogs:  # auto-np radio songs, sweet.
+            music = self.bot.cogs['Music']
             if not mc:
-                await self.bot.cogs['Music'].update_all_listen_moe_players(kpop)
+                try:
+                    await music.update_all_listen_moe_players(kpop)
+                except Exception as e:
+                    log.warning(
+                        f"[LISTEN.moe] Updating {'K-POP' if kpop else 'J-POP'} players failed with error : {e}")
             else:
-                # Monstercat is disabled, so this will never be called
-                await self.bot.cogs['Music'].update_all_mc_players()
-        except Exception as e:
-            log.warning(
-                f"[LISTEN.moe] Updating {'K-POP' if kpop else 'J-POP'} players failed with error : {e}")
+                try:
+                    await music.update_all_mc_players()
+                except Exception as e:
+                    log.warning(
+                        f"[MonsterCat] Updating players failed with error : {e}")
 
-    async def hand(self, msg: listenmoe.message.BaseMessage):
+    async def hand(self, msg):
         before = self.bot.now
 
         if msg.type == listenmoe.message.SONG_INFO:
@@ -42,7 +46,7 @@ class Radio(commands.Cog):
         if before != self.bot.now:  # avoid the first useless updates when starting the bot / loading the cog
             await self.players_update()
 
-    async def handkpop(self, msg: listenmoe.message.BaseMessage):
+    async def handkpop(self, msg):
         before = self.bot.nowkpop
 
         if msg.type == listenmoe.message.SONG_INFO:
@@ -53,7 +57,7 @@ class Radio(commands.Cog):
         if before != self.bot.nowkpop:  # avoid the first useless updates when starting the bot / loading the cog
             await self.players_update(kpop=True)
 
-    async def mchand(self, msg: listenmoe.message.BaseMessage):
+    async def mchand(self, msg):
         before = self.bot.mcnow
         self.bot.mcnow = msg
 
@@ -61,25 +65,24 @@ class Radio(commands.Cog):
             await self.players_update(mc=True)
 
     async def start(self):
-        """Start the cog."""
         await self.bot.wait_until_ready()
 
         kp = listenmoe.client.Client(loop=self.bot.loop, kpop=True)
         kp.register_handler(self.handkpop)
-        task = asyncio.create_task(kp.start())
+        task = asyncio.ensure_future(kp.start())
         self.tasks.append(task)
 
         cl = listenmoe.client.Client(loop=self.bot.loop)
         cl.register_handler(self.hand)
-        task = asyncio.create_task(cl.start())
+        task = asyncio.ensure_future(cl.start())
         self.tasks.append(task)
 
-        # Monstercat is disabled, so this is commented out
+        # Monstercat disabled since a while..
         # mc = monstercat.Client(loop=self.bot.loop, aiosession=self.session)
         # mc.register_handler(self.mchand)
-        # task = asyncio.create_task(mc.start())
+        # task = asyncio.ensure_future(mc.start())
         # self.tasks.append(task)
 
-async def setup(bot: commands.Bot):
-    """Create and add the cog to the bot."""
-    await bot.add_cog(Radio(bot))
+
+def setup(bot):
+    bot.add_cog(Radio(bot))
