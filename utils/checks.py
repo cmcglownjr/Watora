@@ -1,134 +1,120 @@
 """
-Permission checks for Discord.py commands.
+The MIT License (MIT)
 
-The permission system of the bot is based on a "just works" basis
-- You have permissions and the bot has permissions. If you meet the permissions
-required to execute the command (and the bot does as well) then it goes through
-and you can execute the command.
-- Certain permissions signify if the person is a moderator (Manage Server) or an
-admin (Administrator). Having these signify certain bypasses.
-- Of course, the owner will always be able to execute commands.
+Copyright (c) 2015 Rapptz
+Copyright (c) 2017-2020 Zenrac - Watora (https://github.com/Zenrac/Watora)
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the "Software"),
+to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
 """
 
 from discord.ext import commands
-from typing import Any, Callable, Dict, Optional, Union
+
+# The permission system of the bot is based on a "just works" basis
+# You have permissions and the bot has permissions. If you meet the permissions
+# required to execute the command (and the bot does as well) then it goes through
+# and you can execute the command.
+# Certain permissions signify if the person is a moderator (Manage Server) or an
+# admin (Administrator). Having these signify certain bypasses.
+# Of course, the owner will always be able to execute commands.
 
 
-async def check_permissions(
-    ctx: commands.Context,
-    perms: Dict[str, Union[bool, int]],
-    *,
-    check: Callable[[bool], bool] = all,
-    guild: Optional[commands.Guild] = None,
-) -> bool:
-    """Check if the author has the required permissions.
-
-    Args:
-        ctx (Context): The command context.
-        perms (Dict[str, Union[bool, int]]): The permissions to check.
-            Keys are permission names and values are either bools (for
-            allow/deny) or ints (for permission values).
-        check (Callable[[bool], bool]): A function that checks if the
-            permission check passed. Defaults to `all`.
-        guild (Optional[Guild]): The guild to check permissions against.
-            If not provided, checks against the channel.
-
-    Returns:
-        bool: Whether the author has the required permissions.
-    """
+async def check_permissions(ctx, perms, *, check=all):
     is_owner = await ctx.bot.is_owner(ctx.author)
     if is_owner:
         return True
 
-    if guild is None:
-        resolved = ctx.channel.permissions_for(ctx.author)
-    else:
-        resolved = guild.permissions_for(ctx.author)
-
+    resolved = ctx.channel.permissions_for(ctx.author)
     return check(getattr(resolved, name, None) == value for name, value in perms.items())
 
 
-def has_permissions(*, perms: Dict[str, Union[bool, int]], **kwargs) -> commands.check:
-    """A decorator that checks if the author has the required permissions.
-
-    Args:
-        perms (Dict[str, Union[bool, int]]): The permissions to check.
-            Keys are permission names and values are either bools (for
-            allow/deny) or ints (for permission values).
-
-    Returns:
-        check: A decorator that checks if the author has the required
-            permissions.
-    """
-    async def pred(ctx: commands.Context) -> bool:
-        return await check_permissions(ctx, perms, **kwargs)
-
+def has_permissions(*, check=all, **perms):
+    async def pred(ctx):
+        return await check_permissions(ctx, perms, check=check)
     return commands.check(pred)
 
 
-def has_permissions_guild(*, perms: Dict[str, Union[bool, int]], **kwargs) -> commands.check:
-    """A decorator that checks if the author has the required permissions
-    against a guild.
+async def check_guild_permissions(ctx, perms, *, check=all):
+    is_owner = await ctx.bot.is_owner(ctx.author)
+    if is_owner:
+        return True
 
-    Args:
-        perms (Dict[str, Union[bool, int]]): The permissions to check.
-            Keys are permission names and values are either bools (for
-            allow/deny) or ints (for permission values).
+    if not ctx.guild:
+        return False
 
-    Returns:
-        check: A decorator that checks if the author has the required
-            permissions against a guild.
-    """
-    async def pred(ctx: commands.Context) -> bool:
-        return await check_permissions(ctx, perms, guild=ctx.guild, **kwargs)
-
-    return commands.check(pred)
+    resolved = ctx.author.guild_permissions
+    return check(getattr(resolved, name, None) == value for name, value in perms.items())
 
 
-def has_permissions_channel(*, perms: Dict[str, Union[bool, int]], **kwargs) -> commands.check:
-    """A decorator that checks if the author has the required permissions
-    against a channel.
-
-    Args:
-        perms (Dict[str, Union[bool, int]]): The permissions to check.
-            Keys are permission names and values are either bools (for
-            allow/deny) or ints (for permission values).
-
-    Returns:
-        check: A decorator that checks if the author has the required
-            permissions against a channel.
-    """
-    async def pred(ctx: commands.Context) -> bool:
-        return await check_permissions(ctx, perms, **kwargs)
-
-    return commands.check(pred)
-
-
-def has_permissions_any(*, perms: Dict[str, Union[bool, int]], **kwargs) -> commands.check:
-    """A decorator that checks if the author has any of the required
-    permissions.
-
-    Args:
-        perms (Dict[str, Union[bool, int]]): The permissions to check.
-            Keys are permission names and values are either bools (for
-            allow/deny) or ints (for permission values).
-
-    Returns:
-        check: A decorator that checks if the author has any of the
-            required permissions.
-    """
-    perms_iter = (perms.get(perm, None) for perm in kwargs.get("perms", tuple(perms)))
-    async def pred(ctx: commands.Context) -> bool:
-        return any(await check_permissions(ctx, {perm: value}, **kwargs) for perm, value in zip(perms_iter, perms_iter))
-
+def has_guild_permissions(*, check=all, **perms):
+    async def pred(ctx):
+        return await check_guild_permissions(ctx, perms, check=check)
     return commands.check(pred)
 
 
 # These do not take channel overrides into account
 
-def is_mod() -> commands.check:
-    """A decorator that checks if the author has the manage server permission."""
-    async def pred(ctx: commands.Context) -> bool:
-        return await check_permissions(ctx, {'manage_guild': True})
+def is_mod():
+    async def pred(ctx):
+        return await check_guild_permissions(ctx, {'manage_guild': True})
+    return commands.check(pred)
 
-    return commands.
+
+def is_admin():
+    async def pred(ctx):
+        return await check_guild_permissions(ctx, {'administrator': True})
+    return commands.check(pred)
+
+
+def mod_or_permissions(**perms):
+    perms['manage_guild'] = True
+
+    async def predicate(ctx):
+        return await check_guild_permissions(ctx, perms, check=any)
+
+    return commands.check(predicate)
+
+
+def dm_or_permissions(**perms):
+
+    async def predicate(ctx):
+        if not ctx.guild:
+            return True
+        return await check_guild_permissions(ctx, perms, check=any)
+
+    return commands.check(predicate)
+
+
+def admin_or_permissions(**perms):
+    perms['administrator'] = True
+
+    async def predicate(ctx):
+        return await check_guild_permissions(ctx, perms, check=any)
+
+    return commands.check(predicate)
+
+
+def is_in_guilds(*guild_ids):
+
+    def predicate(ctx):
+        guild = ctx.guild
+        if not guild:
+            return False
+        return guild.id in guild_ids
+
+    return commands.check(predicate)
