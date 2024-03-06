@@ -1,26 +1,28 @@
 import re
 import asyncio
 import lavalink
-from typing import Dict, Optional
+
 from random import randrange
+from lavalink.events import PlayerUpdateEvent
 from time import time as current_time
 
 from utils.db import SettingsDB
 from utils.blindtest.blindtest import BlindTest
 from utils.watora import def_time
 
+
 class CustomPlayer(lavalink.DefaultPlayer):
     def __init__(self, guild_id: int, node):
         super().__init__(guild_id, node)
 
-        self.channel_id: Optional[int] = None
+        self.channel_id = None
         self.previous = None
         self.description = None
 
-        self.stop_votes: set = set()
-        self.skip_votes: set = set()
-        self.clear_votes: set = set()
-        self.already_played: set = set()
+        self.stop_votes = set()
+        self.skip_votes = set()
+        self.clear_votes = set()
+        self.already_played = set()
 
         self.auto_paused = False
         self.autoplaylist = None
@@ -29,27 +31,25 @@ class CustomPlayer(lavalink.DefaultPlayer):
         self.npmsg = None
         self.now = None
         self.channel = None
-        self.timer_value: int = def_time  # can be edited in settings.json
+        self.timer_value = def_time  # can be edited in settings.json
 
         self.blindtest = BlindTest(self)
 
         asyncio.ensure_future(self.init_with_db(guild_id))
 
-    async def init_with_db(self, guild_id: int):
-        settings: dict = await SettingsDB.get_instance().get_guild_settings(int(guild_id))
-        if not isinstance(settings, dict):
-            raise TypeError("settings must be a dictionary")
-        await self.set_volume(settings.get("volume", 100))
+    async def init_with_db(self, guild_id):
+        settings = await SettingsDB.get_instance().get_guild_settings(int(guild_id))
+        await self.set_volume(settings.volume)
 
-        if settings.get("timer") is not None:
-            if settings["timer"] or await self.node._manager._lavalink.bot.server_is_claimed(int(guild_id)):
-                self.timer_value = settings["timer"]
-            else:
-                del settings["timer"]
+        if settings.timer != def_time:
+            if settings.timer or await self.node._manager._lavalink.bot.server_is_claimed(int(guild_id)):
+                self.timer_value = settings.timer
+            elif not settings.timer:
+                del settings.timer
                 await SettingsDB.get_instance().set_guild_settings(settings)
 
-        if settings.get("channel"):
-            self.channel = settings["channel"]
+        if settings.channel:
+            self.channel = settings.channel
 
     async def play(self, track=None, **kwargs):
         if self.repeat and self.current:
@@ -78,21 +78,14 @@ class CustomPlayer(lavalink.DefaultPlayer):
         await self.node._send(op='play', guildId=self.guild_id, track=track.track, **kwargs)
         await self.node._dispatch_event(lavalink.events.TrackStartEvent(self, track))
 
-    async def optional_parameters(self, url: str) -> Dict[str, str]:
-        kwargs: Dict[str, str] = {}
-        try:
-            start_time = re.findall('[&?](t|start|starts|s)=(\d+)', url)
-            if start_time:
-                kwargs['startTime'] = str(int(start_time[-1][-1]) * 1000)
-        except re.error as e:
-            print(f"Ignoring invalid regex: {e}")
-
-        try:
-            end_time = re.findall('[&?](e|end|ends)=(\d+)', url)
-            if end_time:
-                kwargs['endTime'] = str(int(end_time[-1][-1]) * 1000)
-        except re.error as e:
-            print(f"Ignoring invalid regex: {e}")
+    async def optional_parameters(self, url):
+        kwargs = {}
+        start_time = re.findall('[&?](t|start|starts|s)=(\d+)', url)
+        if start_time:
+            kwargs['startTime'] = str(int(start_time[-1][-1]) * 1000)
+        end_time = re.findall('[&?](e|end|ends)=(\d+)', url)
+        if end_time:
+            kwargs['endTime'] = str(int(end_time[-1][-1]) * 1000)
 
         return kwargs
 
@@ -124,4 +117,16 @@ class CustomPlayer(lavalink.DefaultPlayer):
             for timestamp in reversed(timestamps):
                 time, title = timestamp
                 milliseconds = (
-                    sum(x * int(t) for x, t
+                    sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))) * 1000)
+                if self.last_position >= milliseconds:
+                    title = title.strip()
+                    if self.current.title != title:
+                        self.current.title = title
+                        if music_cog:
+                            await music_cog.reload_np_msg(self)
+                    break
+
+    async def stop(self):
+        """ Stops the player. Overrided to remove the eq reset"""
+        await self.node._send(op='stop', guildId=self.guild_id)
+        self.current = None
