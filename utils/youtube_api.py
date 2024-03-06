@@ -22,80 +22,51 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
+
 import asyncio
 import aiohttp
-from urllib.parse import quote_plus
-from typing import Any, Dict, List, Optional, TypeVar, DefaultDict, AsyncIterable, Type
 
-T = TypeVar('T')
+from random import randrange
+from urllib.parse import quote_plus
+
 
 class YoutubeAPI:
-    """
-    A class to interact with the YouTube API.
-    """
-    def __init__(self, youtube_token: str, loop: Optional[asyncio.AbstractEventLoop] = None,
-                 aiosession: Optional[aiohttp.ClientSession] = None):
-        """
-        Initialize the YoutubeAPI class.
-
-        :param youtube_token: The YouTube API token.
-        :param loop: The event loop to use. Defaults to the current event loop.
-        :param aiosession: The aiohttp session to use. Defaults to a new session.
-        """
+    def __init__(self, youtube_token, loop=None, aiosession=None):
         self.youtube_token = youtube_token
         self.url = "https://www.googleapis.com/youtube/v3/"
-        self.session = aiosession or aiohttp.ClientSession(loop=self.loop)
+        self.session = aiosession or aiohttp.ClientSession(loop=self.bot.loop)
         self.loop = loop or asyncio.get_event_loop()
 
-    async def make_request(self, url: str) -> Dict[str, T]:
-        """
-        Make a request to the YouTube API.
-
-        :param url: The URL to request.
-        :return: The JSON response as a dict.
-        """
+    async def make_request(self, url):
+        """Used to call youtune API"""
         url = f'{self.url}{url}&key={self.youtube_token}'
-        try:
-            async with self.session.get(url) as resp:
-                if resp.status == 200:
-                    rep = await resp.json()
-                    await resp.release()
-                    return rep
-        except asyncio.TimeoutError:
-            pass
+        async with self.session.get(url) as resp:
+            if resp.status == 200:
+                rep = await resp.json()
+                await resp.release()
+                return rep
         return {}
 
-    async def youtube_search(self, query: str) -> List[Dict[str, str]]:
-        """
-        Search for videos on YouTube.
-
-        :param query: The search query.
-        :return: A list of video dicts.
-        """
+    async def youtube_search(self, query):
+        """Allows to search"""
         search_response = await self.make_request(f'search?part=snippet&q={quote_plus(query)}')
         if not search_response:
-            return []
+            return {}
         videos = []
         for search_result in search_response.get('items', []):
             if search_result['id']['kind'] == 'youtube#video':
                 track = {}
-                track['uri'] = f'https://www.youtube.com/watch?v={search_result["id"]["videoId"]}'
+                track['uri'] = 'https://www.youtube.com/watch?v=' + \
+                    search_result['id']['videoId']
                 track['title'] = search_result['snippet']['title']
                 videos.append(track)
 
         return videos
 
-    async def get_youtube_title(self, player: Optional[Any] = None, *, id: List[str]) -> DefaultDict[str, str]:
-        """
-        Get the titles of YouTube videos.
-
-        :param player: The player object.
-        :param id: The IDs of the videos.
-        :return: A defaultdict of video IDs to titles.
-        """
-        if not id:
-            return {}
-        found: DefaultDict[str, str] = DefaultDict(str)
+    async def get_youtube_title(self, player=None, *, id: list):
+        if not isinstance(id, list):
+            id = [id]
+        found = {}
         while id:
             ids = id[:45]
             ready_ids = ','.join(ids)
@@ -107,4 +78,46 @@ class YoutubeAPI:
                     found[m['id']] = m['snippet']['title']
         return found
 
-    async def get_youtube_infos(self, id: str) ->
+    async def get_youtube_infos(self, id):
+        rep = await self.make_request(f'videos?part=snippet&id={id}')
+        if not rep:
+            return None, None
+        thumbnail = await self.get_youtube_thumbnail(rep)
+        description = rep['items'][0]['snippet']['description']
+
+        return thumbnail, description
+
+    async def get_youtube_thumbnail(self, rep):
+        """Gets song thumbnail from an ID or a youtube api response"""
+        if not isinstance(rep, dict):
+            rep = await self.make_request(f'videos?part=snippet&id={rep}')
+            if not rep:
+                return None
+        thumb = rep['items'][0]['snippet']['thumbnails']
+        best_res = list(thumb.values())[0]
+        for res in list(thumb.values())[1:]:
+            pixel = res['width'] * res['height']
+            best_pixel = best_res['width'] * best_res['height']
+            if best_pixel < pixel:
+                best_res = res
+        return best_res['url']
+
+    async def get_recommendation(self, id: str, player=None):
+        """Gets music recommendations from YouTube API from a specified ID"""
+        rep = await self.make_request(f'search?part=snippet&relatedToVideoId={id}&type=video&id=10')
+        if not rep:
+            return {}
+        results = rep['items']
+        for result in results:
+            if result['id']['videoId'] != id:
+                if not player or (result['id']['videoId'] not in player.already_played):
+                    if '1 hour' in result.get('snippet', {}).get('title', '').lower():  # Avoid 1 hour version
+                        if player:
+                            player.already_played.add(result['id']['videoId'])
+                            player.already_played.add(id)
+                        return result['id']['videoId']
+        return results[randrange(len(results))]['id']['videoId']
+        # If all recommendation have been already played..
+        # Return a random result and hope it'll not create an
+        # infinite recommendation loop, (this random should
+        # prevent from this)
