@@ -1,23 +1,20 @@
+import re
 import asyncio
 import aiohttp
-from typing import List, Union
 
 from jikanpy.exceptions import JikanException
 
 from utils.db import SettingsDB
 from utils.watora import Jikan
 
-class BlindTestSong:
-    """
-    Represents a song in a blind test.
-    """
 
-    def __init__(self, jikan: Jikan = None, url: str = None, title: str = None, id: int = None, image_url: str = None):
+class BlindTestSong:
+    def __init__(self, jikan=None, url: str = None, title: str = None, id: int = None, image_url: str = None):
         self.jikan = jikan
-        self.url = url
         self.title = title
         self.id = id
         self._titles = [self.title]
+        self.url = url
         self.image_url = image_url
         self.alternative_added = False
         self.found = False
@@ -25,41 +22,26 @@ class BlindTestSong:
         self.video_url = None
         self.video_name = None
 
-        self.invalid_words = (
-            'tv', 'openings', 'opening', 'part', 'ending', 'op', 'ed', 'full',
-            'lyrics', 'hd', 'official', 'feat', '1080p', '60fps', 'version', 'season'
-        )
+        self.invalid_words = ('tv', 'openings', 'opening', 'part', 'ending', 'op', 'ed', 'full',
+                              'lyrics', 'hd', 'official', 'feat', '1080p', '60fps', 'version', 'season')
 
         self.invalid_separators = [
-            ';', ':', '|', '(', ')', '{', '}', '[', ']', '「', '」', ' -', ' -'
-        ]
+            ';', ':', '|', '(', ')', '{', '}', '[', ']', '「', '」', ' -', ' -']
 
     @property
-    def is_anime(self) -> bool:
-        """
-        Returns True if the song is from an anime, False otherwise.
-        """
-        return self.id is not None
+    def is_anime(self):
+        return (self.id is not None)
 
     @property
-    def titles(self) -> List[str]:
-        """
-        Returns the list of song titles.
-        """
+    def titles(self):
         return self._titles
 
-    async def add_alternative_titles(self, optional: Union[str, List[str]] = None):
-        """
-        Adds alternative titles to the song.
-
-        :param optional: Optional alternative titles. Can be a string or a list of strings.
-        """
-        if optional is not None:
-            if isinstance(optional, str):
-                self._titles += [optional]
-            elif isinstance(optional, list):
+    async def add_alternative_titles(self, optional=[]):
+        if optional:
+            if isinstance(optional, list):
                 self._titles += optional
-
+            else:
+                self._titles += [optional]
         if self.is_anime:
             if not self.alternative_added:
                 settings = await SettingsDB.get_instance().get_glob_settings()
@@ -95,14 +77,8 @@ class BlindTestSong:
 
         self._titles = titles
 
-    def generate_anwers(self, titles: List[str]) -> List[str]:
-        """
-        Generates alternative answers from the song titles.
-
-        :param titles: The list of song titles.
-        :return: The list of generated alternative answers.
-        """
-        titles = list(filter(None, titles))
+    def generate_anwers(self, titles):
+        titles = filter(None, titles)
         titles = [x.lower() for x in titles]
         new_titles = titles.copy()
 
@@ -125,5 +101,5 @@ class BlindTestSong:
             without = re.sub(r'\W+', ' ', m).strip()
             titles.append(without)
 
-        titles = list(filter(None, titles))
+        titles = filter(None, titles)
         return list(set(titles))  # bye bye duplicates
