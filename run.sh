@@ -1,8 +1,18 @@
 #!/bin/bash
 
-python3.6 -V > /dev/null 2>&1 || {
-	echo >&2 "Python 3.7 doesn't seem to be installed.  Do you have a weird installation?"
-	echo >&2 "If you have python 3.7, use it to run run.py instead of this script."
-	exit 1; }
+# Check if Python 3.6 or greater is installed
+if ! command -v python3.6 &> /dev/null
+then
+    echo "Python 3.6 or greater doesn't seem to be installed.  Please install it and try again."
+    exit 1
+fi
 
+# Check if Python 3.6 can run the script
+if ! python3.6 -c "import run_py; print('Script can run')" &> /dev/null
+then
+    echo "Python 3.6 can't run the script.  Please make sure it's installed and the script is correct."
+    exit 1
+fi
+
+# Run the script
 python3.6 run.py
